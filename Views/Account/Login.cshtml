@@ -1,0 +1,49 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = "Вход в систему";
+}
+
+<div class="row justify-content-center mt-5">
+    <div class="col-md-5">
+        <div class="card shadow-lg">
+            <div class="card-header text-center">
+                <h2 class="mb-0">
+                    <i class="bi bi-box-arrow-in-right"></i> @ViewData["Title"]
+                </h2>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+                    
+                    <div class="form-group mb-3">
+                        <label asp-for="Email" class="form-label">Email адрес</label>
+                        <input asp-for="Email" class="form-control form-control-lg" placeholder="admin@store.com" />
+                        <span asp-validation-for="Email" class="text-danger small"></span>
+                    </div>
+                    
+                    <div class="form-group mb-4">
+                        <label asp-for="Password" class="form-label">Пароль</label>
+                        <input asp-for="Password" type="password" class="form-control form-control-lg" placeholder="AdminPass123!" />
+                        <span asp-validation-for="Password" class="text-danger small"></span>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <i class="bi bi-box-arrow-in-right"></i> Войти
+                    </button>
+                </form>
+                
+                <hr class="my-4" />
+                
+                <div class="alert alert-info">
+                    <strong>Тестовые учетные данные:</strong><br />
+                    Email: <code>admin@store.com</code><br />
+                    Пароль: <code>AdminPass123!</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

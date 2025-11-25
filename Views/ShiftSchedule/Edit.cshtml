@@ -1,0 +1,47 @@
+@model ShiftManagement.Models.ShiftSchedule
+@{
+    ViewData["Title"] = "Редактировать смену";
+}
+
+<div class="row">
+    <div class="col-md-6">
+        <h2>@ViewData["Title"]</h2>
+        <hr />
+        <form asp-action="Edit" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Id" />
+            <div class="form-group">
+                <label asp-for="ShiftDate" class="control-label"></label>
+                <input asp-for="ShiftDate" type="date" class="form-control" />
+                <span asp-validation-for="ShiftDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="StartTime" class="control-label"></label>
+                <input asp-for="StartTime" type="time" class="form-control" />
+                <span asp-validation-for="StartTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="EndTime" class="control-label"></label>
+                <input asp-for="EndTime" type="time" class="form-control" />
+                <span asp-validation-for="EndTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Status" class="control-label"></label>
+                <select asp-for="Status" class="form-control">
+                    <option value="Planned">Запланирована</option>
+                    <option value="Completed">Выполнена</option>
+                    <option value="Cancelled">Отменена</option>
+                    <option value="Modified">Изменена</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <button type="submit" class="btn btn-primary">Сохранить</button>
+                <a asp-action="Index" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

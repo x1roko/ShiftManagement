@@ -1,0 +1,53 @@
+@{
+    ViewData["Title"] = "Главная";
+}
+
+<div class="text-center fade-in" style="padding: 4rem 0;">
+    <h1 class="display-3 mb-4" style="color: #2c3e50;">Добро пожаловать</h1>
+    <p class="lead mb-4" style="font-size: 1.3rem; color: #555;">в систему управления сменами сотрудников</p>
+    
+    @if (User.Identity?.IsAuthenticated == true)
+    {
+        <div class="row mt-5">
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-people" style="font-size: 3rem; color: #3498db;"></i>
+                        <h5 class="card-title mt-3">Сотрудники</h5>
+                        <p class="card-text">Управляйте информацией о сотрудниках</p>
+                        <a href="/Employee" class="btn btn-primary">Открыть</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-clock" style="font-size: 3rem; color: #27ae60;"></i>
+                        <h5 class="card-title mt-3">Смены</h5>
+                        <p class="card-text">Планируйте и отслеживайте смены</p>
+                        <a href="/ShiftSchedule" class="btn btn-success">Открыть</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <i class="bi bi-file-text" style="font-size: 3rem; color: #e74c3c;"></i>
+                        <h5 class="card-title mt-3">Отчеты</h5>
+                        <p class="card-text">Смотрите статистику и отчеты</p>
+                        <a href="/Report" class="btn btn-danger">Открыть</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="mt-5">
+            <p class="mb-4">Пожалуйста, войдите в систему для доступа к функциям</p>
+            <a href="/Account/Login" class="btn btn-primary btn-lg">
+                <i class="bi bi-box-arrow-in-right"></i> Войти
+            </a>
+        </div>
+    }
+</div>

@@ -1,0 +1,77 @@
+@model IEnumerable<ShiftManagement.Models.Employee>
+@{
+    ViewData["Title"] = "Сотрудники";
+}
+
+<div class="fade-in">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h2><i class="bi bi-people-fill"></i> Сотрудники</h2>
+        <a asp-action="Create" class="btn btn-success btn-lg">
+            <i class="bi bi-plus-circle-fill"></i> Добавить сотрудника
+        </a>
+    </div>
+
+    @if (Model?.Any() == true)
+    {
+        <div class="grid-layout">
+        @foreach (var emp in Model)
+        {
+            <div class="employee-card slide-in-up">
+                <h5>
+                    <i class="bi bi-person-circle" style="color: #3498db;"></i>
+                    @emp.FirstName @emp.LastName
+                </h5>
+
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-briefcase"></i> Должность:
+                    </span>
+                    <span class="info-value">
+                        <span class="badge bg-info">@emp.Position</span>
+                    </span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-envelope"></i> Email:
+                    </span>
+                    <span class="info-value">@emp.Email</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-telephone"></i> Телефон:
+                    </span>
+                    <span class="info-value">@emp.PhoneNumber</span>
+                </div>
+
+                <div class="info-row">
+                    <span class="info-label">
+                        <i class="bi bi-calendar2-check"></i> Дата приема:
+                    </span>
+                    <span class="info-value">@emp.HireDate.ToShortDateString()</span>
+                </div>
+
+                <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                    <a asp-action="Edit" asp-route-id="@emp.Id" class="btn btn-sm btn-primary" style="flex: 1; justify-content: center;">
+                        <i class="bi bi-pencil-square"></i> Редактировать
+                    </a>
+                    <a asp-action="Delete" asp-route-id="@emp.Id" class="btn btn-sm btn-danger" style="flex: 1; justify-content: center;">
+                        <i class="bi bi-trash-fill"></i> Удалить
+                    </a>
+                </div>
+            </div>
+        }
+        </div>
+    }
+    else
+    {
+        <div class="alert alert-info text-center" style="margin-top: 2rem;">
+            <i class="bi bi-info-circle-fill" style="font-size: 2rem;"></i>
+            <p class="mt-2">Нет сотрудников</p>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Добавьте первого сотрудника
+            </a>
+        </div>
+    }
+</div>

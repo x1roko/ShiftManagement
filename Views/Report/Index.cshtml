@@ -1,0 +1,35 @@
+@model IEnumerable<ShiftManagement.Models.Report>
+@{
+    ViewData["Title"] = "Отчеты";
+}
+
+<h2>Отчеты о рабочем времени</h2>
+<a asp-action="Generate" class="btn btn-success mb-3">Создать отчет</a>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Сотрудник</th>
+            <th>Период</th>
+            <th>Всего часов</th>
+            <th>Смен</th>
+            <th>Дата создания</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    @foreach (var report in Model)
+    {
+        <tr>
+            <td>@report.Employee?.FirstName @report.Employee?.LastName</td>
+            <td>@report.PeriodStart.ToShortDateString() - @report.PeriodEnd.ToShortDateString()</td>
+            <td>@report.TotalWorkHours</td>
+            <td>@report.ShiftCount</td>
+            <td>@report.CreatedAt.ToShortDateString()</td>
+            <td>
+                <a asp-action="ExportCsv" asp-route-reportId="@report.Id" class="btn btn-sm btn-info">CSV</a>
+                <a asp-action="ExportExcel" asp-route-reportId="@report.Id" class="btn btn-sm btn-info">Excel</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
