@@ -22,22 +22,27 @@ namespace ShiftManagement.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var shifts = await _context.ShiftSchedules!
+            var shifts = await _context.ShiftSchedules
                 .Include(s => s.Employee)
                 .OrderBy(s => s.ShiftDate)
                 .ToListAsync();
+
+            var user = User;
+            var isAdmin = user?.Identity?.IsAuthenticated == true && user.IsInRole("Admin");
+            ViewBag.IsAdmin = isAdmin;
+
             return View(shifts);
         }
 
         public async Task<IActionResult> MyShifts()
         {
             var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-            var employee = await _context.Employees!
+            var employee = await _context.Employees
                 .FirstOrDefaultAsync(e => e.UserId == userId);
 
             if (employee == null) return NotFound();
 
-            var shifts = await _context.ShiftSchedules!
+            var shifts = await _context.ShiftSchedules
                 .Where(s => s.EmployeeId == employee.Id)
                 .OrderBy(s => s.ShiftDate)
                 .ToListAsync();
@@ -46,9 +51,11 @@ namespace ShiftManagement.Controllers
         }
 
         [Authorize(Roles = "Admin")]
-        public IActionResult Create(int employeeId)
+        public async Task<IActionResult> Create()
         {
-            ViewBag.EmployeeId = employeeId;
+            ViewBag.Employees = await _context.Employees
+                .Select(e => new { e.Id, Name = e.FirstName + " " + e.LastName })
+                .ToListAsync();
             return View();
         }
 
@@ -58,7 +65,7 @@ namespace ShiftManagement.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.ShiftSchedules?.Add(shift);
+                _context.ShiftSchedules.Add(shift);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -69,7 +76,7 @@ namespace ShiftManagement.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-            var shift = await _context.ShiftSchedules!.FindAsync(id);
+            var shift = await _context.ShiftSchedules.FindAsync(id);
             if (shift == null) return NotFound();
             return View(shift);
         }
@@ -93,7 +100,7 @@ namespace ShiftManagement.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-            var shift = await _context.ShiftSchedules!
+            var shift = await _context.ShiftSchedules
                 .Include(s => s.Employee)
                 .FirstOrDefaultAsync(s => s.Id == id);
             if (shift == null) return NotFound();
@@ -104,10 +111,10 @@ namespace ShiftManagement.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var shift = await _context.ShiftSchedules!.FindAsync(id);
+            var shift = await _context.ShiftSchedules.FindAsync(id);
             if (shift != null)
             {
-                _context.ShiftSchedules?.Remove(shift);
+                _context.ShiftSchedules.Remove(shift);
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));

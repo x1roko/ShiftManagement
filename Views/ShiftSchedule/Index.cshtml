@@ -3,7 +3,16 @@
     ViewData["Title"] = "Смены";
 }
 
+@if (ViewBag.IsAdmin == true)
+{
+    <div style="margin-bottom: 20px;">
+        <a href="/ShiftSchedule/Create" class="btn btn-success" style="padding: 10px 20px; font-size: 16px;">Добавить смену</a>
+    </div>
+}
 <h2>Расписание смен</h2>
+<a asp-action="Create" class="btn btn-success btn-lg">
+    <i class="bi bi-plus-circle-fill"></i> Добавить смену
+</a>
 <table class="table table-striped">
     <thead>
         <tr>
@@ -25,8 +34,11 @@
             <td>@shift.EndTime.ToString("hh\\:mm")</td>
             <td>@shift.Status</td>
             <td>
-                <a asp-action="Edit" asp-route-id="@shift.Id" class="btn btn-sm btn-primary">Редактировать</a>
-                <a asp-action="Delete" asp-route-id="@shift.Id" class="btn btn-sm btn-danger">Удалить</a>
+                @if (ViewBag.IsAdmin == true)
+                {
+                    <a asp-action="Edit" asp-route-id="@shift.Id" class="btn btn-sm btn-primary">Редактировать</a>
+                    <a asp-action="Delete" asp-route-id="@shift.Id" class="btn btn-sm btn-danger">Удалить</a>
+                }
             </td>
         </tr>
     }

@@ -9,7 +9,13 @@
         <form asp-action="Generate" method="post">
             <div class="form-group">
                 <label for="employeeId" class="control-label">Сотрудник</label>
-                <input type="number" id="employeeId" name="employeeId" class="form-control" required />
+                <select id="employeeId" name="employeeId" class="form-control" required>
+                    <option value="">Выберите сотрудника</option>
+                    @foreach (var employee in ViewBag.Employees)
+                    {
+                        <option value="@employee.Id">@employee.FirstName @employee.LastName (@employee.Position)</option>
+                    }
+                </select>
             </div>
             <div class="form-group">
                 <label for="startDate" class="control-label">Дата начала</label>

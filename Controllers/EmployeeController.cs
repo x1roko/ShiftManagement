@@ -22,8 +22,9 @@ namespace ShiftManagement.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
-            var employees = await _context.Employees!
+            var employees = await _context.Employees
                 .Include(e => e.Shifts)
+                .Include(e => e.User)
                 .ToListAsync();
             return View(employees);
         }
@@ -40,7 +41,7 @@ namespace ShiftManagement.Controllers
         {
             if (ModelState.IsValid)
             {
-                _context.Employees?.Add(employee);
+                _context.Employees.Add(employee);
                 await _context.SaveChangesAsync();
                 return RedirectToAction(nameof(Index));
             }
@@ -51,7 +52,7 @@ namespace ShiftManagement.Controllers
         public async Task<IActionResult> Edit(int? id)
         {
             if (id == null) return NotFound();
-            var employee = await _context.Employees!.FindAsync(id);
+            var employee = await _context.Employees.FindAsync(id);
             if (employee == null) return NotFound();
             return View(employee);
         }
@@ -74,7 +75,7 @@ namespace ShiftManagement.Controllers
         public async Task<IActionResult> Delete(int? id)
         {
             if (id == null) return NotFound();
-            var employee = await _context.Employees!.FindAsync(id);
+            var employee = await _context.Employees.FindAsync(id);
             if (employee == null) return NotFound();
             return View(employee);
         }
@@ -83,10 +84,10 @@ namespace ShiftManagement.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> DeleteConfirmed(int id)
         {
-            var employee = await _context.Employees!.FindAsync(id);
+            var employee = await _context.Employees.FindAsync(id);
             if (employee != null)
             {
-                _context.Employees?.Remove(employee);
+                _context.Employees.Remove(employee);
                 await _context.SaveChangesAsync();
             }
             return RedirectToAction(nameof(Index));

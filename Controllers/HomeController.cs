@@ -6,7 +6,21 @@ namespace ShiftManagement.Controllers
     {
         public IActionResult Index()
         {
-            return RedirectToAction("Index", "Employee");
+            if (User.Identity.IsAuthenticated)
+            {
+                if (User.IsInRole("Admin"))
+                {
+                    return RedirectToAction("Index", "Employee");
+                }
+                else
+                {
+                    return RedirectToAction("MyShifts", "ShiftSchedule");
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "Account");
+            }
         }
 
         public IActionResult Error()

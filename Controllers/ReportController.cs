@@ -26,15 +26,16 @@ namespace ShiftManagement.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Index()
         {
-            var reports = await _context.Reports!
+            var reports = await _context.Reports
                 .Include(r => r.Employee)
                 .ToListAsync();
             return View(reports);
         }
 
         [Authorize(Roles = "Admin")]
-        public IActionResult Generate()
+        public async Task<IActionResult> Generate()
         {
+            ViewBag.Employees = await _context.Employees.ToListAsync();
             return View();
         }
 
@@ -42,7 +43,7 @@ namespace ShiftManagement.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> Generate(int employeeId, DateTime startDate, DateTime endDate)
         {
-            var shifts = await _context.ShiftSchedules!
+            var shifts = await _context.ShiftSchedules
                 .Where(s => s.EmployeeId == employeeId && 
                             s.ShiftDate >= startDate && 
                             s.ShiftDate <= endDate &&
@@ -61,7 +62,7 @@ namespace ShiftManagement.Controllers
                 CreatedAt = DateTime.UtcNow
             };
 
-            _context.Reports?.Add(report);
+            _context.Reports.Add(report);
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
@@ -70,7 +71,7 @@ namespace ShiftManagement.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ExportCsv(int? reportId)
         {
-            var report = await _context.Reports!
+            var report = await _context.Reports
                 .Include(r => r.Employee)
                 .FirstOrDefaultAsync(r => r.Id == reportId);
 
@@ -83,7 +84,7 @@ namespace ShiftManagement.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> ExportExcel(int? reportId)
         {
-            var report = await _context.Reports!
+            var report = await _context.Reports
                 .Include(r => r.Employee)
                 .FirstOrDefaultAsync(r => r.Id == reportId);
 

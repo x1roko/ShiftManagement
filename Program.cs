@@ -1,22 +1,22 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting; // Добавлено для IWebHostEnvironment и IsDevelopment
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting; // Добавлено для IsDevelopment
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using ShiftManagement.Data;
 using ShiftManagement.Models;
 using ShiftManagement.Services;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add DbContext
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlite("Data Source=shiftmanagement.db"));
 
 // Add Identity
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
@@ -31,30 +31,40 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
 builder.Services.AddScoped<ExportService>();
 builder.Services.AddControllersWithViews();
 
+// Add session support
+builder.Services.AddSession();
+
+// Configure antiforgery (temporarily disabled for testing)
+// builder.Services.AddAntiforgery(options =>
+// {
+//     options.HeaderName = "X-CSRF-TOKEN";
+//     options.Cookie.Name = "X-CSRF-COOKIE";
+//     options.Cookie.HttpOnly = true;
+//     options.Cookie.SecurePolicy = CookieSecurePolicy.None;
+//     options.Cookie.SameSite = SameSiteMode.Lax;
+// });
+
 var app = builder.Build();
 
 // Database migration and seeding
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
+    var logger = services.GetRequiredService<ILogger<Program>>();
     try
     {
         var context = services.GetRequiredService<ApplicationDbContext>();
         var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
-        // Убедимся, что миграции применены
+        // Ensure database is created
         await context.Database.EnsureCreatedAsync();
-        
-        // Добавляем задержку, чтобы база данных полностью инициализировалась
-        await Task.Delay(2000);
-        
-        await context.Database.MigrateAsync();
-        await SeedData(userManager, roleManager);
+        logger.LogInformation("Starting database seeding...");
+        await SeedData(context, userManager, roleManager, logger);
+        logger.LogInformation("Database seeding completed.");
     }
     catch (Exception ex)
     {
-        var logger = services.GetRequiredService<ILogger<Program>>();
         logger.LogError(ex, "An error occurred during database migration or seeding.");
     }
 }
@@ -77,11 +87,12 @@ app.UseStaticFiles(new StaticFileOptions
 {
     OnPrepareResponse = ctx =>
     {
-        ctx.Context.Response.Headers.Add("Cache-Control", "public,max-age=3600");
+        ctx.Context.Response.Headers["Cache-Control"] = "public,max-age=3600";
     }
 });
 
 app.UseRouting();
+app.UseSession();
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -91,26 +102,87 @@ app.MapControllerRoute(
 
 app.Run();
 
-static async Task SeedData(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+static async Task SeedData(ApplicationDbContext context, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ILogger logger)
 {
+    logger.LogInformation("Checking for Admin role...");
     if (!await roleManager.RoleExistsAsync("Admin"))
     {
+        logger.LogInformation("Creating Admin role...");
         await roleManager.CreateAsync(new IdentityRole("Admin"));
     }
+    logger.LogInformation("Checking for Employee role...");
     if (!await roleManager.RoleExistsAsync("Employee"))
     {
+        logger.LogInformation("Creating Employee role...");
         await roleManager.CreateAsync(new IdentityRole("Employee"));
     }
 
+        logger.LogInformation("Checking for admin user...");
     var adminUser = await userManager.FindByNameAsync("admin@store.com");
     if (adminUser == null)
     {
+        logger.LogInformation("Creating admin user...");
         adminUser = new ApplicationUser
         {
             UserName = "admin@store.com",
             Email = "admin@store.com"
         };
-        await userManager.CreateAsync(adminUser, "AdminPass123!");
-        await userManager.AddToRoleAsync(adminUser, "Admin");
+        var result = await userManager.CreateAsync(adminUser, "AdminPass123!");
+        if (result.Succeeded)
+        {
+            logger.LogInformation("Admin user created successfully");
+            await userManager.AddToRoleAsync(adminUser, "Admin");
+            logger.LogInformation("Admin role assigned");
+
+            // Create admin employee
+            logger.LogInformation("Creating admin employee...");
+            var adminEmployee = new Employee
+            {
+                FirstName = "Admin",
+                LastName = "User",
+                Position = "Administrator",
+                Email = "admin@store.com",
+                HireDate = DateTime.UtcNow,
+                UserId = adminUser.Id
+            };
+            context.Employees.Add(adminEmployee);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Admin employee created");
+        }
+        else
+        {
+            logger.LogError("Failed to create admin user: {errors}", string.Join(", ", result.Errors.Select(e => e.Description)));
+        }
+    }
+    else
+    {
+        logger.LogInformation("Admin user already exists");
+        
+        // Check if admin user has Admin role
+        var isAdmin = await userManager.IsInRoleAsync(adminUser, "Admin");
+        logger.LogInformation($"Admin user role check: {isAdmin}");
+        
+        // Check if admin user has associated employee
+        var adminEmployee = await context.Employees.FirstOrDefaultAsync(e => e.UserId == adminUser.Id);
+        if (adminEmployee == null)
+        {
+            logger.LogInformation("Creating missing admin employee...");
+            adminEmployee = new Employee
+            {
+                FirstName = "Admin",
+                LastName = "User", 
+                Position = "Administrator",
+                Email = "admin@store.com",
+                HireDate = DateTime.UtcNow,
+                UserId = adminUser.Id
+            };
+            context.Employees.Add(adminEmployee);
+            await context.SaveChangesAsync();
+            logger.LogInformation("Admin employee created");
+        }
+        else
+        {
+            logger.LogInformation($"Admin employee exists: {adminEmployee.FirstName} {adminEmployee.LastName}");
+        }
     }
 }

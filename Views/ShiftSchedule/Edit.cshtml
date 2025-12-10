@@ -10,6 +10,7 @@
         <form asp-action="Edit" method="post">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="Id" />
+            <input type="hidden" asp-for="EmployeeId" />
             <div class="form-group">
                 <label asp-for="ShiftDate" class="control-label"></label>
                 <input asp-for="ShiftDate" type="date" class="form-control" />
